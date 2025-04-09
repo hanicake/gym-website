@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Home | Gym Paglu</title>
+  <!-- Google Font for typography -->
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <script>
+    function showSection(section) {
+      document.getElementById('logsSection').style.display = (section === 'logs') ? 'block' : 'none';
+      document.getElementById('membersSection').style.display = (section === 'members') ? 'block' : 'none';
+    }
+    window.onload = function() {
+      showSection('logs');
+    }
+  </script>
+</head>
+<body class="home-page">
+  <header class="dark-card">
+    <div class="logo">GYM JAM</div>
+    <nav>
+      <a href="{{ url_for('logout') }}" class="ghost-btn">Logout</a>
+    </nav>
+  </header>
+  <main class="home-content">
+    <section class="welcome-section">
+      <h1>Welcome, {{ session['user'] }}<br><span>let’s grind!</span></h1>
+      <div class="checkin-container">
+        <form action="{{ url_for('checkin') }}" method="POST">
+          <button type="submit" class="ghost-btn large">
+            {% if open_log %}
+              Check Out
+            {% else %}
+              Check In
+            {% endif %}
+          </button>
+        </form>
+        <p class="status-message">{{ status_message }}</p>
+      </div>
+      <div class="toggle-buttons">
+        <button class="ghost-btn" onclick="showSection('logs')">Your Gym Logs</button>
+        <button class="ghost-btn" onclick="showSection('members')">Who's In</button>
+      </div>
+    </section>
+    <section id="logsSection" class="info-section">
+      <h2>Your Gym Logs</h2>
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Check-In</th>
+            <th>Check-Out</th>
+            <th>Time Spent (mins)</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for log in logs %}
+          <tr>
+            <td>{{ log.checkin_time.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+            <td>
+              {% if log.checkout_time %}
+                {{ log.checkout_time.strftime('%Y-%m-%d %H:%M:%S') }}
+              {% else %}
+                -
+              {% endif %}
+            </td>
+            <td>{{ log.time_spent if log.time_spent else '-' }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </section>
+    <section id="membersSection" class="info-section" style="display:none;">
+      <h2>People Currently In</h2>
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Username</th>
+            <th>Check-In Time</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for log in current_members %}
+          <tr>
+            <td>{{ log.username }}</td>
+            <td>{{ log.checkin_time.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </section>
+    <!-- Display flash messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <ul class="flashes">
+          {% for category, message in messages %}
+            <li class="{{ category }}">{{ message }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+  </main>
+</body>
+</html>
