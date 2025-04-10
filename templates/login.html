@@ -3,7 +3,6 @@
 <head>
   <meta charset="UTF-8">
   <title>Login | Gym Jam</title>
-  <!-- Use a clean sans-serif font -->
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
@@ -13,7 +12,6 @@
       <h1 class="brand">GYM<br>JAM</h1>
     </div>
     <div class="right-section">
-      <!-- Display flash messages -->
       {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
           <ul class="flashes">
@@ -23,11 +21,13 @@
           </ul>
         {% endif %}
       {% endwith %}
+
       <form action="{{ url_for('login') }}" method="POST">
         <input type="text" name="username" placeholder="Username" pattern="\S+" title="No spaces allowed" required>
         <input type="password" name="password" placeholder="Password" required>
-        <button type="submit" class="primary-btn">Log In / Sign Up</button>
+        <button type="submit" class="primary-btn">Login</button>
       </form>
+      <p style="margin-top: 1rem; font-size: 0.9rem; color: #bbb;">Don't have an account? <a href="{{ url_for('signup') }}">Sign Up</a></p>
     </div>
   </div>
 </body>

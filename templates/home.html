@@ -2,30 +2,144 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Home | Gym Paglu</title>
-  <!-- Google Font for typography -->
+  <title>Home | Gym Jam</title>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <style>
+    body.home-page {
+      display: flex;
+      height: 100vh;
+      margin: 0;
+      font-family: 'Montserrat', sans-serif;
+      background: #121212;
+      color: #fff;
+    }
+
+    .sidebar {
+      width: 220px;
+      background: #1e1e1e;
+      display: flex;
+      flex-direction: column;
+      padding: 2rem 1rem;
+      box-shadow: 2px 0 10px rgba(0, 0, 0, 0.3);
+    }
+
+    .sidebar .logo {
+      font-size: 1.8rem;
+      font-weight: 700;
+      margin-bottom: 2rem;
+      text-align: center;
+    }
+
+    .sidebar button {
+      background: none;
+      border: none;
+      color: #fff;
+      padding: 1rem;
+      text-align: left;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+
+    .sidebar button:hover {
+      background: #333;
+    }
+
+    .main-content {
+      flex: 1;
+      padding: 2rem;
+      overflow-y: auto;
+    }
+
+    .checkin-container {
+      margin-bottom: 2rem;
+    }
+
+    .ghost-btn.large {
+      font-size: 1.3rem;
+      padding: 1rem 1.5rem;
+    }
+
+    .info-section {
+      display: none;
+      margin-top: 1.5rem;
+    }
+
+    .info-section.active {
+      display: block;
+    }
+
+    .table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+    }
+
+    .table th, .table td {
+      padding: 0.75rem;
+      border-bottom: 1px solid #333;
+    }
+
+    .flashes {
+      list-style: none;
+      padding: 0;
+      margin-top: 1rem;
+    }
+
+    .flashes li {
+      padding: 0.75rem;
+      background-color: #333;
+      margin-bottom: 0.5rem;
+      border-radius: 5px;
+    }
+
+    header {
+      display: flex;
+      justify-content: flex-end;
+      background: #1e1e1e;
+      padding: 1rem 2rem;
+    }
+
+    header nav a {
+      color: #fff;
+      text-decoration: none;
+      font-weight: 600;
+    }
+  </style>
   <script>
     function showSection(section) {
-      document.getElementById('logsSection').style.display = (section === 'logs') ? 'block' : 'none';
-      document.getElementById('membersSection').style.display = (section === 'members') ? 'block' : 'none';
+      document.getElementById('logsSection').classList.remove('active');
+      document.getElementById('membersSection').classList.remove('active');
+
+      if (section === 'logs') {
+        document.getElementById('logsSection').classList.add('active');
+      } else if (section === 'members') {
+        document.getElementById('membersSection').classList.add('active');
+      }
+
+      reduceFontSize();
     }
-    window.onload = function() {
-      showSection('logs');
+
+    function reduceFontSize() {
+      const heading = document.getElementById('welcomeHeading');
+      const span = document.getElementById('welcomeSpan');
+      heading.style.fontSize = '3rem';
+      span.style.fontSize = '1.8rem';
     }
   </script>
 </head>
 <body class="home-page">
-  <header class="dark-card">
+  <div class="sidebar">
     <div class="logo">GYM JAM</div>
-    <nav>
-      <a href="{{ url_for('logout') }}" class="ghost-btn">Logout</a>
-    </nav>
-  </header>
-  <main class="home-content">
+    <button onclick="showSection('logs')">Your Gym Logs</button>
+    <button onclick="showSection('members')">Who's In</button>
+    <a href="{{ url_for('logout') }}" style="margin-top:auto; text-align:center;">Logout</a>
+  </div>
+
+  <div class="main-content">
     <section class="welcome-section">
-      <h1>Welcome, {{ session['user'] }}<br><span>let’s grind!</span></h1>
+      <h1 id="welcomeHeading">Welcome, {{ session['user'] }}<br><span id="welcomeSpan">let's grind!</span></h1>
       <div class="checkin-container">
         <form action="{{ url_for('checkin') }}" method="POST">
           <button type="submit" class="ghost-btn large">
@@ -36,13 +150,10 @@
             {% endif %}
           </button>
         </form>
-        <p class="status-message">{{ status_message }}</p>
-      </div>
-      <div class="toggle-buttons">
-        <button class="ghost-btn" onclick="showSection('logs')">Your Gym Logs</button>
-        <button class="ghost-btn" onclick="showSection('members')">Who's In</button>
+        <!-- <p class="status-message">{{ status_message }}</p> -->
       </div>
     </section>
+
     <section id="logsSection" class="info-section">
       <h2>Your Gym Logs</h2>
       <table class="table">
@@ -70,7 +181,8 @@
         </tbody>
       </table>
     </section>
-    <section id="membersSection" class="info-section" style="display:none;">
+
+    <section id="membersSection" class="info-section">
       <h2>People Currently In</h2>
       <table class="table">
         <thead>
@@ -89,7 +201,7 @@
         </tbody>
       </table>
     </section>
-    <!-- Display flash messages -->
+
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
         <ul class="flashes">
@@ -99,6 +211,7 @@
         </ul>
       {% endif %}
     {% endwith %}
-  </main>
+  </div>
 </body>
 </html>
+<!-- Compare this snippet from templates/style.css: -->
