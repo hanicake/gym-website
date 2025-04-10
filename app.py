@@ -24,6 +24,12 @@ class Log(db.Model):
     checkout_time = db.Column(db.DateTime, nullable=True)
     time_spent = db.Column(db.Integer, nullable=True)  # in minutes
 
+class Routine(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(100), nullable=False)
+    day = db.Column(db.String(20), nullable=False)
+    exercise = db.Column(db.String(200), nullable=False)
+
 # ---------- ROUTES ----------
 
 @app.route('/')
@@ -140,6 +146,23 @@ def checkin():
 
     db.session.commit()
     return redirect(url_for('home'))
+@app.route('/routine', methods=['GET', 'POST'])
+def routine():
+    if 'user' not in session:
+        return redirect(url_for('login'))
+    
+    username = session['user']
+
+    if request.method == 'POST':
+        day = request.form.get('day')
+        exercise = request.form.get('exercise')
+        new_entry = Routine(username=username, day=day, exercise=exercise)
+        db.session.add(new_entry)
+        db.session.commit()
+        flash("Routine saved!", "success")
+    
+    routines = Routine.query.filter_by(username=username).all()
+    return render_template('routine.html', routines=routines)
 
 # ---------- DB INIT ----------
 if __name__ == '__main__':

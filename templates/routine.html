@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Daily Routine | Gym Jam</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <h1>Your Daily Routine</h1>
+  <form method="POST">
+    <select name="day" required>
+      <option value="">Select Day</option>
+      {% for d in ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] %}
+        <option value="{{ d }}">{{ d }}</option>
+      {% endfor %}
+    </select>
+    <input type="text" name="exercise" placeholder="Exercise" required>
+    <button type="submit">Add</button>
+  </form>
+
+  <h2>Saved Routines:</h2>
+  <ul>
+    {% for r in routines %}
+      <li><strong>{{ r.day }}:</strong> {{ r.exercise }}</li>
+    {% endfor %}
+  </ul>
+
+  <a href="{{ url_for('home') }}">Back to Home</a>
+</body>
+</html>
