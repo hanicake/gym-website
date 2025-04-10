@@ -150,20 +150,24 @@ def checkin():
 def routine():
     if 'user' not in session:
         return redirect(url_for('login'))
-    
-    username = session['user']
 
+    username = session['user']
+    
     if request.method == 'POST':
         day = request.form.get('day')
         exercise = request.form.get('exercise')
-        new_entry = Routine(username=username, day=day, exercise=exercise)
-        db.session.add(new_entry)
-        db.session.commit()
-        flash("Routine saved!", "success")
-    
-    routines = Routine.query.filter_by(username=username).all()
-    return render_template('routine.html', routines=routines)
+        if day and exercise:
+            new_entry = Routine(username=username, day=day, exercise=exercise)
+            db.session.add(new_entry)
+            db.session.commit()
+            flash("Exercise added!", "success")
+        return redirect(url_for('routine'))
 
+    routines_by_day = {}
+    for day in ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']:
+        routines_by_day[day] = Routine.query.filter_by(username=username, day=day).all()
+
+    return render_template('routine.html', routines_by_day=routines_by_day)
 # ---------- DB INIT ----------
 if __name__ == '__main__':
     if not os.path.exists('gym.db'):

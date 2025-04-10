@@ -3,28 +3,171 @@
 <head>
   <meta charset="UTF-8">
   <title>Daily Routine | Gym Jam</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Montserrat', sans-serif;
+      background-color: #121212;
+      color: #fff;
+      display: flex;
+      height: 100vh;
+    }
+
+    .sidebar {
+      width: 220px;
+      background: #1e1e1e;
+      display: flex;
+      flex-direction: column;
+      padding: 2rem 1rem;
+      box-shadow: 2px 0 10px rgba(0, 0, 0, 0.3);
+    }
+
+    .sidebar h2 {
+      font-size: 1.8rem;
+      font-weight: 700;
+      margin-bottom: 2rem;
+      text-align: center;
+    }
+
+    .sidebar a {
+      color: #fff;
+      text-decoration: none;
+      padding: 1rem;
+      font-size: 1rem;
+      display: block;
+      transition: background 0.2s ease;
+    }
+
+    .sidebar a:hover {
+      background-color: #333;
+      border-radius: 5px;
+    }
+
+    .content {
+      flex: 1;
+      padding: 2rem 3rem;
+      overflow-y: auto;
+    }
+
+    .content h1 {
+      font-size: 2.5rem;
+      margin-bottom: 2rem;
+    }
+
+    form {
+      background: #1e1e1e;
+      padding: 1.5rem;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.4);
+      margin-bottom: 2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    form label {
+      font-weight: 600;
+      margin-bottom: 0.3rem;
+    }
+
+    form input,
+    form select {
+      padding: 0.7rem 1rem;
+      border: none;
+      border-radius: 8px;
+      background: #2a2a2a;
+      color: #fff;
+      font-size: 1rem;
+    }
+
+    form button {
+      padding: 1.2rem 1.5rem;
+      background-color: #444;
+      border: none;
+      border-radius: 6px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #fff;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      width: fit-content;
+    }
+
+    form button:hover {
+      background-color: #666;
+    }
+
+    .routine-list h2 {
+      font-size: 1.8rem;
+      margin-bottom: 1rem;
+    }
+
+    .routine-list ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    .routine-list li {
+      background: #1f1f1f;
+      padding: 1rem;
+      margin-bottom: 0.8rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    }
+
+    .routine-list li strong {
+      color: white;
+    }
+  </style>
 </head>
 <body>
-  <h1>Your Daily Routine</h1>
-  <form method="POST">
-    <select name="day" required>
-      <option value="">Select Day</option>
-      {% for d in ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] %}
-        <option value="{{ d }}">{{ d }}</option>
+  <div class="sidebar">
+    <h2>GYM JAM</h2>
+    <a href="{{ url_for('home') }}">Home</a>
+    <a href="{{ url_for('routine') }}">Daily Routine</a>
+    <a href="{{ url_for('logout') }}" style="margin-top: auto;">Logout</a>
+  </div>
+
+  <div class="content">
+    <h1>Daily Routine</h1>
+
+    <form method="POST">
+      <div>
+        <label for="day">Day </label>
+        <select name="day" id="day" required>
+          <option value="">Select Day</option>
+          {% for d in ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] %}
+            <option value="{{ d }}">{{ d }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div>
+        <label for="exercise">Exercise</label>
+        <input type="text" id="exercise" name="exercise" placeholder="Enter exercise..." required>
+      </div>
+
+      <button type="submit">Add Routine</button>
+    </form>
+
+    <div class="routine-container">
+      {% for day, routines in routines_by_day.items() %}
+        <div class="day-box">
+          <h3>{{ day }}</h3>
+          {% if routines %}
+            <ul>
+              {% for item in routines %}
+                <li>{{ item.exercise }}</li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <p>No exercises saved.</p>
+          {% endif %}
+        </div>
       {% endfor %}
-    </select>
-    <input type="text" name="exercise" placeholder="Exercise" required>
-    <button type="submit">Add</button>
-  </form>
-
-  <h2>Saved Routines:</h2>
-  <ul>
-    {% for r in routines %}
-      <li><strong>{{ r.day }}:</strong> {{ r.exercise }}</li>
-    {% endfor %}
-  </ul>
-
-  <a href="{{ url_for('home') }}">Back to Home</a>
+    </div>
+  </div>
 </body>
 </html>

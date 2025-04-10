@@ -106,6 +106,24 @@
       text-decoration: none;
       font-weight: 600;
     }
+ 
+    .sidebar a.sidebar-btn {
+      background: none;
+      border: none;
+      color: #fff;
+      padding: 1rem;
+      text-align: left;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background 0.2s ease;
+      display: block;
+      text-decoration: none;
+    }
+
+    .sidebar a.sidebar-btn:hover {
+      background: #333;
+    }
+
   </style>
   <script>
     function showSection(section) {
@@ -134,7 +152,7 @@
     <div class="logo">GYM JAM</div>
     <button onclick="showSection('logs')">Your Gym Logs</button>
     <button onclick="showSection('members')">Who's In</button>
-    <a href="{{ url_for('routine') }}" style="text-align:center;">Daily Routine</a>
+    <a href="{{ url_for('routine') }}" class ="sidebar-btn">Go to Daily Routine</a>
     <a href="{{ url_for('logout') }}" style="margin-top:auto; text-align:center;">Logout</a>
   </div>
 
