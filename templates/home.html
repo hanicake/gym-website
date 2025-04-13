@@ -195,7 +195,7 @@
       </table>
     </section>
 
-    <section id="routineSection" class="info-section">
+    <section id="routineSection" class="info-section active">
       <h1 style="margin: 0.8rem 0 1.5rem 0">Daily Routine</h1>
 
       <form method="POST" class="routine-form">
@@ -220,7 +220,6 @@
           <button type="submit">Add Routine</button>
         </div>
       </form>
-      
       
       <div class="routine-container">
         {% for day, routines in routines_by_day.items() %}
@@ -271,6 +270,8 @@
         {% endfor %}
       </div>
     </section>
+
+    
 
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}

@@ -97,39 +97,50 @@ def logout():
     flash("Logged out successfully.", "info")
     return redirect(url_for('login'))
 
-@app.route('/home')
+@app.route('/home', methods=['GET', 'POST'])
 def home():
     if 'user' not in session:
         return redirect(url_for('login'))
 
     username = session['user']
+
+    # Handle new routine POST
+    if request.method == 'POST':
+        day = request.form.get('day')
+        exercise = request.form.get('exercise')
+        if day and exercise:
+            new_entry = Routine(username=username, day=day, exercise=exercise)
+            db.session.add(new_entry)
+            db.session.commit()
+            flash("Exercise added!", "success")
+        return redirect(url_for('home'))
+
+    # Existing check-in/out logic
     last_log = Log.query.filter_by(username=username).order_by(Log.checkin_time.desc()).first()
     status_message = ""
     open_log = False
-
-    if last_log:
-        if last_log.checkout_time is None:
-            open_log = True
-            status_message = f"Checked in at {last_log.checkin_time.strftime('%Y-%m-%d %H:%M:%S')}"
-        else:
-            status_message = f"Checked out at {last_log.checkout_time.strftime('%Y-%m-%d %H:%M:%S')}"
+    if last_log and last_log.checkout_time is None:
+        open_log = True
+        status_message = f"Checked in at {last_log.checkin_time.strftime('%Y-%m-%d %H:%M:%S')}"
+    elif last_log:
+        status_message = f"Checked out at {last_log.checkout_time.strftime('%Y-%m-%d %H:%M:%S')}"
 
     user_logs = Log.query.filter_by(username=username).order_by(Log.checkin_time.desc()).all()
     current_members = Log.query.filter_by(checkout_time=None).all()
 
-    # Fetch routines by day
+    # ✅ THIS IS ESSENTIAL: Fetch routines grouped by day
     routines_by_day = {}
     for day in ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']:
         routines_by_day[day] = Routine.query.filter_by(username=username, day=day).all()
 
-    return render_template(
-        'home.html',
-        status_message=status_message,
-        logs=user_logs,
-        current_members=current_members,
-        open_log=open_log,
-        routines_by_day=routines_by_day  # Pass routines_by_day to the template
-    )
+    # Always return routines_by_day to home.html
+    return render_template('home.html',
+                           status_message=status_message,
+                           logs=user_logs,
+                           current_members=current_members,
+                           open_log=open_log,
+                           routines_by_day=routines_by_day)
+
 
 @app.route('/checkin', methods=['POST'])
 def checkin():
@@ -175,7 +186,7 @@ def routine():
     for day in ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']:
         routines_by_day[day] = Routine.query.filter_by(username=username, day=day).all()
 
-    return render_template('routine.html', routines_by_day=routines_by_day)
+    return render_template('home.html', routines_by_day=routines_by_day)
 @app.route('/routine/edit/<int:routine_id>', methods=['POST'])
 def edit_routine(routine_id):
     if 'user' not in session:
