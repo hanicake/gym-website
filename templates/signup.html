@@ -9,7 +9,8 @@
 <body class="login-page">
   <div class="login-container dark-card">
     <div class="left-section">
-      <h1 class="brand">GYM<br>JAM</h1>
+      <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo" style="display: block; margin: 0.5rem auto; width: 60%;">
+      <h2>Gym<span style = "color: #953177;">Jam</span></h2>
     </div>
     <div class="right-section">
       {% with messages = get_flashed_messages(with_categories=true) %}

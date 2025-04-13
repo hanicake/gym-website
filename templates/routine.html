@@ -1,6 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <script>
+    function toggleEdit(id) {
+      const form = document.getElementById('form-' + id);
+      form.style.display = form.style.display === 'none' ? 'block' : 'none';
+    }
+  </script>
   <meta charset="UTF-8">
   <title>Daily Routine | Gym Jam</title>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
@@ -93,6 +99,7 @@
       cursor: pointer;
       transition: background-color 0.3s ease;
       width: fit-content;
+      margin: 0.5rem auto;
     }
 
     form button:hover {
@@ -122,7 +129,7 @@
     }
   </style>
 </head>
-<body>
+<body class ="routine-page">
   <div class="sidebar">
     <h2>GYM JAM</h2>
     <a href="{{ url_for('home') }}">Home</a>
@@ -159,7 +166,18 @@
           {% if routines %}
             <ul>
               {% for item in routines %}
-                <li>{{ item.exercise }}</li>
+              <li style="position: relative; margin-bottom: 1rem;">
+                <span id="label-{{ item.id }}">{{ item.exercise }}</span>
+              
+                
+                <button onclick="toggleEdit('{{ item.id }}')" style="background: none; border: none; color: #ccc; margin-left: 0.5rem;">🖉</button>
+              
+                <!-- Edit Form -->
+                <form id="form-{{ item.id }}" action="{{ url_for('edit_routine', routine_id=item.id) }}" method="POST" style="display: none; margin-top: 0.5rem;" class="edit-container">
+                  <input type="text" name="new_exercise" placeholder="New name..." class="edit-input">
+                  <button type="submit" class="done-button">Done</button>
+                </form>
+              </li>
               {% endfor %}
             </ul>
           {% else %}

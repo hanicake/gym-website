@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, session
+from flask import Flask, render_template, request, redirect, url_for, flash, session
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 from zoneinfo import ZoneInfo
@@ -20,7 +20,7 @@ class User(db.Model):
 class Log(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(100), nullable=False)
-    checkin_time = db.Column(db.DateTime, default=datetime.utcnow)
+    checkin_time = db.Column(db.DateTime, default=datetime.now)
     checkout_time = db.Column(db.DateTime, nullable=True)
     time_spent = db.Column(db.Integer, nullable=True)  # in minutes
 
@@ -117,11 +117,19 @@ def home():
     user_logs = Log.query.filter_by(username=username).order_by(Log.checkin_time.desc()).all()
     current_members = Log.query.filter_by(checkout_time=None).all()
 
-    return render_template('home.html',
-                           status_message=status_message,
-                           logs=user_logs,
-                           current_members=current_members,
-                           open_log=open_log)
+    # Fetch routines by day
+    routines_by_day = {}
+    for day in ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']:
+        routines_by_day[day] = Routine.query.filter_by(username=username, day=day).all()
+
+    return render_template(
+        'home.html',
+        status_message=status_message,
+        logs=user_logs,
+        current_members=current_members,
+        open_log=open_log,
+        routines_by_day=routines_by_day  # Pass routines_by_day to the template
+    )
 
 @app.route('/checkin', methods=['POST'])
 def checkin():
@@ -129,7 +137,7 @@ def checkin():
         return redirect(url_for('login'))
 
     username = session['user']
-    now = datetime.utcnow()
+    now = datetime.now()
     open_log = Log.query.filter_by(username=username, checkout_time=None).first()
 
     if open_log:
@@ -168,6 +176,30 @@ def routine():
         routines_by_day[day] = Routine.query.filter_by(username=username, day=day).all()
 
     return render_template('routine.html', routines_by_day=routines_by_day)
+@app.route('/routine/edit/<int:routine_id>', methods=['POST'])
+def edit_routine(routine_id):
+    if 'user' not in session:
+        return redirect(url_for('login'))
+
+    new_exercise = request.form.get('new_exercise')
+    routine = Routine.query.get_or_404(routine_id)
+
+    if routine.username != session['user']:
+        flash("Unauthorized action.", "danger")
+        return redirect(url_for('routine'))
+
+    routine.exercise = new_exercise
+    db.session.commit()
+    flash("Exercise updated!", "success")
+    return redirect(url_for('routine'))
+
+@app.route('/delete_routine/<int:routine_id>', methods=['POST'])
+def delete_routine(routine_id):
+    routine = Routine.query.get_or_404(routine_id)
+    db.session.delete(routine)
+    db.session.commit()
+    return redirect(url_for('routine'))
+
 # ---------- DB INIT ----------
 if __name__ == '__main__':
     if not os.path.exists('gym.db'):

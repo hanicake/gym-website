@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Home | Gym Jam</title>
+  <title>Home | GymJam</title>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
   <style>
@@ -13,37 +13,6 @@
       font-family: 'Montserrat', sans-serif;
       background: #121212;
       color: #fff;
-    }
-
-    .sidebar {
-      width: 220px;
-      background: #1e1e1e;
-      display: flex;
-      flex-direction: column;
-      padding: 2rem 1rem;
-      box-shadow: 2px 0 10px rgba(0, 0, 0, 0.3);
-    }
-
-    .sidebar .logo {
-      font-size: 1.8rem;
-      font-weight: 700;
-      margin-bottom: 2rem;
-      text-align: center;
-    }
-
-    .sidebar button {
-      background: none;
-      border: none;
-      color: #fff;
-      padding: 1rem;
-      text-align: left;
-      font-size: 1rem;
-      cursor: pointer;
-      transition: background 0.2s ease;
-    }
-
-    .sidebar button:hover {
-      background: #333;
     }
 
     .main-content {
@@ -129,11 +98,14 @@
     function showSection(section) {
       document.getElementById('logsSection').classList.remove('active');
       document.getElementById('membersSection').classList.remove('active');
+      document.getElementById('routineSection').classList.remove('active');
 
       if (section === 'logs') {
         document.getElementById('logsSection').classList.add('active');
       } else if (section === 'members') {
         document.getElementById('membersSection').classList.add('active');
+      } else if (section === 'routine') {
+        document.getElementById('routineSection').classList.add('active');
       }
 
       reduceFontSize();
@@ -149,11 +121,13 @@
 </head>
 <body class="home-page">
   <div class="sidebar">
-    <div class="logo">GYM JAM</div>
-    <button onclick="showSection('logs')">Your Gym Logs</button>
+    <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo" style="display: block; margin: 0.5rem auto; width: 60%;">
+    <h2>Gym<span style = "color: #953177;">Jam</span></h2>
+    <hr style="width: 60%; margin: 1rem auto; border: none; border-top: 0.2rem solid #333;">
+    <button onclick="showSection('logs')">Gym Logs</button>
     <button onclick="showSection('members')">Who's In</button>
-    <a href="{{ url_for('routine') }}" class ="sidebar-btn">Go to Daily Routine</a>
-    <a href="{{ url_for('logout') }}" style="margin-top:auto; text-align:center;">Logout</a>
+    <button onclick="showSection('routine')">Routine</button>
+    <a href="{{ url_for('logout') }}" class="primary-btn" style="margin-top: auto; text-align: center;">Logout</a>
   </div>
 
   <div class="main-content">
@@ -219,6 +193,83 @@
           {% endfor %}
         </tbody>
       </table>
+    </section>
+
+    <section id="routineSection" class="info-section">
+      <h1 style="margin: 0.8rem 0 1.5rem 0">Daily Routine</h1>
+
+      <form method="POST" class="routine-form">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="day" style="font-size: 1.2rem">Day</label>
+            <select name="day" id="day" required>
+              <option value="">Select Day</option>
+              {% for d in ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] %}
+                <option value="{{ d }}">{{ d }}</option>
+              {% endfor %}
+            </select>
+          </div>
+      
+          <div class="form-group">
+            <label for="exercise" style="font-size: 1.2rem">Exercise</label>
+            <input type="text" id="exercise" name="exercise" placeholder="Enter exercise..." required>
+          </div>
+        </div>
+      
+        <div>
+          <button type="submit">Add Routine</button>
+        </div>
+      </form>
+      
+      
+      <div class="routine-container">
+        {% for day, routines in routines_by_day.items() %}
+          <div class="day-box">
+            <h3>{{ day }}</h3>
+            {% if routines %}
+              <ul style="padding: 0;">
+                {% for item in routines %}
+                <li style="margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid #333; display: flex; flex-direction: column; gap: 0.4rem;">
+
+                  <!-- Exercise Text -->
+                  <div id="label-{{ item.id }}" style="white-space: normal; word-wrap: break-word; overflow-wrap: break-word; font-size: 1rem;">
+                    {{ item.exercise }}
+                  </div>
+                
+                  <!-- Edit/Delete Buttons (Left Aligned) -->
+                  <div style="display: flex; padding: 0.3rem 0; gap: 0.5rem;">
+                    <button onclick="toggleEdit('{{ item.id }}')" class="tiny-button">Edit</button>
+                    <form action="{{ url_for('delete_routine', routine_id=item.id) }}" method="POST" style="display:inline;">
+                      <button type="submit" class="tiny-button" title="Delete">&#128465;</button>
+                    </form>
+                  </div>
+                
+                  <!-- Edit Form -->
+                  <form id="form-{{ item.id }}"
+                        action="{{ url_for('edit_routine', routine_id=item.id) }}"
+                        method="POST"
+                        style="display: none; background: #2a2a2a; padding: 0.5rem; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
+                    
+                    <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                      <input type="text" name="new_exercise" placeholder="New name..." class="edit-input"
+                             style="margin: 0; width: 100%; padding: 0.5rem; border: none; border-radius: 6px; background: #1f1f1f; color: #fff;" required>
+                      <div style="display: flex; padding: 0.3rem 0; gap: 0.5rem;">
+                        <button type="button" onclick="toggleEdit('{{ item.id }}')">Cancel</button>
+                        <button type="submit">Done</button>
+                      </div>
+                    </div>
+                  </form>
+                
+                </li>
+                
+                {% endfor %}
+              </ul>
+            {% else %}
+              <p>No exercises saved.</p>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
     </section>
 
     {% with messages = get_flashed_messages(with_categories=true) %}
