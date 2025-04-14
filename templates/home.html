@@ -95,6 +95,30 @@
 
   </style>
   <script>
+    window.addEventListener("DOMContentLoaded", function () {
+      const urlParams = new URLSearchParams(window.location.search);
+      const fromRoutine = urlParams.get('routine_updated') === '1' || {{ 'true' if routine_updated else 'false' }};
+      if (fromRoutine) {
+        showSection('routine');
+        // Optional: clean up URL to remove query param
+        if (window.history.replaceState) {
+          const cleanUrl = window.location.origin + window.location.pathname;
+          window.history.replaceState(null, null, cleanUrl);
+        }
+      }
+    });
+    function toggleEdit(id) {
+      const form = document.getElementById(`form-${id}`);
+      const label = document.getElementById(`label-${id}`);
+      
+      if (form.style.display === 'none' || form.style.display === '') {
+        form.style.display = 'block';
+        label.style.display = 'none';
+      } else {
+        form.style.display = 'none';
+        label.style.display = 'block';
+      }
+    }
     function showSection(section) {
       document.getElementById('logsSection').classList.remove('active');
       document.getElementById('membersSection').classList.remove('active');
@@ -107,22 +131,34 @@
       } else if (section === 'routine') {
         document.getElementById('routineSection').classList.add('active');
       }
-
       reduceFontSize();
+      
+      if (section === 'nothing') {
+        const heading = document.getElementById('welcomeHeading');
+        const span = document.getElementById('welcomeSpan');
+        const username = document.getElementById('welcomeUsername');
+        heading.style.fontSize = '5rem';
+        username.style.fontSize = '5rem';
+        span.style.fontSize = '2.5rem';
+      }
     }
 
     function reduceFontSize() {
       const heading = document.getElementById('welcomeHeading');
       const span = document.getElementById('welcomeSpan');
+      const username = document.getElementById('welcomeUsername');
       heading.style.fontSize = '3rem';
+      username.style.fontSize = '3rem';
       span.style.fontSize = '1.8rem';
     }
   </script>
 </head>
 <body class="home-page">
   <div class="sidebar">
-    <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo" style="display: block; margin: 0.5rem auto; width: 60%;">
-    <h2>Gym<span style = "color: #953177;">Jam</span></h2>
+    <button onclick="showSection('nothing')" class="home-btn">
+      <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo" style="display: block; margin: 0.5rem auto; width: 60%;">
+      <h2>Gym<span style = "color: #953177;">Jam</span></h2>
+    </button>
     <hr style="width: 60%; margin: 1rem auto; border: none; border-top: 0.2rem solid #333;">
     <button onclick="showSection('logs')">Gym Logs</button>
     <button onclick="showSection('members')">Who's In</button>
@@ -132,7 +168,7 @@
 
   <div class="main-content">
     <section class="welcome-section">
-      <h1 id="welcomeHeading">Welcome, {{ session['user'] }}<br><span id="welcomeSpan">let's grind!</span></h1>
+      <h1 id="welcomeHeading">Welcome, <span id="welcomeUsername" style="color: #953177; font-size: 5rem; margin-top: 1rem; transition: font-size 0.3s ease;">{{ session['user'] }}</span><br><span id="welcomeSpan">let's grind!</span></h1>
       <div class="checkin-container">
         <form action="{{ url_for('checkin') }}" method="POST">
           <button type="submit" class="ghost-btn large">
@@ -195,7 +231,7 @@
       </table>
     </section>
 
-    <section id="routineSection" class="info-section active">
+    <section id="routineSection" class="info-section">
       <h1 style="margin: 0.8rem 0 1.5rem 0">Daily Routine</h1>
 
       <form method="POST" class="routine-form">
@@ -220,6 +256,7 @@
           <button type="submit">Add Routine</button>
         </div>
       </form>
+      
       
       <div class="routine-container">
         {% for day, routines in routines_by_day.items() %}
@@ -270,8 +307,6 @@
         {% endfor %}
       </div>
     </section>
-
-    
 
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}

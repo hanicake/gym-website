@@ -96,16 +96,16 @@ def logout():
     session.pop('user', None)
     flash("Logged out successfully.", "info")
     return redirect(url_for('login'))
-
 @app.route('/home', methods=['GET', 'POST'])
 def home():
     if 'user' not in session:
         return redirect(url_for('login'))
 
     username = session['user']
+    routine_updated = False  # 🔸 Flag for JS use
 
-    # Handle new routine POST
-    if request.method == 'POST':
+    # Handle adding a routine
+    if request.method == 'POST' and 'day' in request.form and 'exercise' in request.form:
         day = request.form.get('day')
         exercise = request.form.get('exercise')
         if day and exercise:
@@ -113,12 +113,12 @@ def home():
             db.session.add(new_entry)
             db.session.commit()
             flash("Exercise added!", "success")
-        return redirect(url_for('home'))
+            routine_updated = True
 
-    # Existing check-in/out logic
     last_log = Log.query.filter_by(username=username).order_by(Log.checkin_time.desc()).first()
     status_message = ""
     open_log = False
+
     if last_log and last_log.checkout_time is None:
         open_log = True
         status_message = f"Checked in at {last_log.checkin_time.strftime('%Y-%m-%d %H:%M:%S')}"
@@ -128,18 +128,19 @@ def home():
     user_logs = Log.query.filter_by(username=username).order_by(Log.checkin_time.desc()).all()
     current_members = Log.query.filter_by(checkout_time=None).all()
 
-    # ✅ THIS IS ESSENTIAL: Fetch routines grouped by day
     routines_by_day = {}
     for day in ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']:
         routines_by_day[day] = Routine.query.filter_by(username=username, day=day).all()
 
-    # Always return routines_by_day to home.html
-    return render_template('home.html',
-                           status_message=status_message,
-                           logs=user_logs,
-                           current_members=current_members,
-                           open_log=open_log,
-                           routines_by_day=routines_by_day)
+    return render_template(
+        'home.html',
+        status_message=status_message,
+        logs=user_logs,
+        current_members=current_members,
+        open_log=open_log,
+        routines_by_day=routines_by_day,
+        routine_updated=routine_updated  # 🔸 Send to template
+    )
 
 
 @app.route('/checkin', methods=['POST'])
@@ -165,28 +166,7 @@ def checkin():
 
     db.session.commit()
     return redirect(url_for('home'))
-@app.route('/routine', methods=['GET', 'POST'])
-def routine():
-    if 'user' not in session:
-        return redirect(url_for('login'))
 
-    username = session['user']
-    
-    if request.method == 'POST':
-        day = request.form.get('day')
-        exercise = request.form.get('exercise')
-        if day and exercise:
-            new_entry = Routine(username=username, day=day, exercise=exercise)
-            db.session.add(new_entry)
-            db.session.commit()
-            flash("Exercise added!", "success")
-        return redirect(url_for('routine'))
-
-    routines_by_day = {}
-    for day in ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']:
-        routines_by_day[day] = Routine.query.filter_by(username=username, day=day).all()
-
-    return render_template('home.html', routines_by_day=routines_by_day)
 @app.route('/routine/edit/<int:routine_id>', methods=['POST'])
 def edit_routine(routine_id):
     if 'user' not in session:
@@ -197,19 +177,24 @@ def edit_routine(routine_id):
 
     if routine.username != session['user']:
         flash("Unauthorized action.", "danger")
-        return redirect(url_for('routine'))
+        return redirect(url_for('home'))  # FIXED
 
     routine.exercise = new_exercise
     db.session.commit()
     flash("Exercise updated!", "success")
-    return redirect(url_for('routine'))
+    return redirect(url_for('home') + '?routine_updated=1')
+
 
 @app.route('/delete_routine/<int:routine_id>', methods=['POST'])
 def delete_routine(routine_id):
     routine = Routine.query.get_or_404(routine_id)
+    if routine.username != session.get('user'):
+        flash("Unauthorized action.", "danger")
+        return redirect(url_for('home'))  # FIXED
     db.session.delete(routine)
     db.session.commit()
-    return redirect(url_for('routine'))
+    flash("Exercise deleted!", "info")
+    return redirect(url_for('home') + '?routine_updated=1')
 
 # ---------- DB INIT ----------
 if __name__ == '__main__':
